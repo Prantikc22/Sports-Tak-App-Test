@@ -158,13 +158,23 @@ public class Test extends BaseClass {
                 driver.switchTo().window(childWindow);
                 /*Store all the pages in story in a list.*/
                 List<WebElement> stories = driver.findElements(By.xpath("//amp-story-page"));
-                /*Print the text on each page in the console. The check inside the while loop is for checking whether the replay button
-                * is displayed or not. If not print the text and click on next button.*/
+                List<WebElement> ads = driver.findElements(By.xpath("//amp-story-page[contains(@id, 'i-amphtml-ad-page-')]"));
+                /*Print the text on each page in the console. The condition inside the while loop is for checking the click count. As per calculation
+                * it should be total story page - total ads. But ads are always captured as 1. Hence for for bigger web story there
+                * are more number of ads visible which can make test unstable. This is handled using the next while loop.*/
                 int page = 0;
-                while(!helper.isElementPresent(driver.findElements(By.xpath("//div[contains(@class, 'fwd-replay')]"))) || page < stories.size()) {
+                while(page < stories.size()-ads.size()) {
                     System.out.println(stories.get(page).getText());
                     driver.findElement(By.xpath("//div[contains(@class, 'next-container')]")).click();
                     page++;
+                    Thread.sleep(1000);
+                }
+                /*Here it is checked whether the last story is reached by checking for the replay button. If not continue the operation.
+                * It is separated, to improve speed.*/
+                while(!helper.isElementPresent(driver.findElements(By.xpath("//div[contains(@class, 'replay')]")))) {
+                    System.out.println(stories.get(page++).getText());
+                    driver.findElement(By.xpath("//div[contains(@class, 'next-container')]")).click();
+                    Thread.sleep(1000);
                 }
                 System.out.println(stories.get(stories.size()-1).getText());
                 /*On the last page there is a button to go to the next story, but it is inside a shadow element of the DOM.
